@@ -58,6 +58,7 @@ export interface MetricData {
 export interface DailyStats {
   subscribers: number;
   subsGoal: number;
+  views: number;
   avgViewDuration: string; // "4:12"
   vtr: number;
   impressions: number;
@@ -140,4 +141,23 @@ export interface UiConfigSummary {
   veoModelName?: string;
   defaultLanguage: 'en' | 'de';
   defaultTimezone: string;
+}
+
+export interface CompetitorChannel {
+  id: string;
+  channelId: string;
+  url: string;
+  title: string;
+  priority: 'LOW' | 'MEDIUM' | 'HIGH';
+  addedAt: string;
+}
+
+export interface CompetitorTrendSummary {
+  channelId: string;
+  channelName: string;
+  recentVideoCount?: number;
+  topVideo?: {
+    title: string;
+    views: number;
+  };
 }

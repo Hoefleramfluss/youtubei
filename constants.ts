@@ -1,74 +1,32 @@
-
 import { Trend, DailyStats, LogEntry } from './types';
 
-export const MOCK_TRENDS: Trend[] = [
-  { id: '1', topic: 'Google Veo 3 vs Sora', relevance: 98, category: 'Comparison', growthPotential: 'High', isBreaking: false },
-  { id: '2', topic: 'Midjourney v7 Alpha Features', relevance: 92, category: 'News', growthPotential: 'High', isBreaking: true },
-  { id: '3', topic: 'AI Agents for Productivity', relevance: 85, category: 'Tutorial', growthPotential: 'Medium', isBreaking: false },
-  { id: '4', topic: 'OpenAI o1 Reasoning Capabilties', relevance: 88, category: 'Deep Dive', growthPotential: 'High', isBreaking: false },
-  { id: '5', topic: 'Top 5 Free AI Video Generators', relevance: 75, category: 'Listicle', growthPotential: 'Medium', isBreaking: false },
-];
+// EMPTY DATA - Forces UI to use backend or show "No Data" states
+
+export const MOCK_TRENDS: Trend[] = [];
 
 export const INITIAL_STATS: DailyStats = {
-  subscribers: 12450,
+  subscribers: 0,
   subsGoal: 100000,
-  avgViewDuration: '4:12',
-  vtr: 68, // Goal is 80
-  impressions: 450000,
-  ctr: 8.4,
+  views: 0,
+  avgViewDuration: '0:00',
+  vtr: 0,
+  impressions: 0,
+  ctr: 0.0,
 };
 
 export const GROWTH_DATA = [
-  { name: 'Mon', subs: 12000, views: 45000 },
-  { name: 'Tue', subs: 12150, views: 48000 },
-  { name: 'Wed', subs: 12280, views: 52000 },
-  { name: 'Thu', subs: 12450, views: 49000 },
-  { name: 'Fri', subs: 12600, views: 61000 },
-  { name: 'Sat', subs: 12900, views: 75000 },
-  { name: 'Sun', subs: 13200, views: 82000 },
+  // Placeholder structure, but zeroed. 
+  // Real implementation should fetch history from an API if needed.
+  { name: 'Mon', subs: 0, views: 0 },
+  { name: 'Tue', subs: 0, views: 0 },
+  { name: 'Wed', subs: 0, views: 0 },
+  { name: 'Thu', subs: 0, views: 0 },
+  { name: 'Fri', subs: 0, views: 0 },
+  { name: 'Sat', subs: 0, views: 0 },
+  { name: 'Sun', subs: 0, views: 0 },
 ];
 
-export const MOCK_LOGS: LogEntry[] = [
-  {
-    id: '1',
-    timestamp: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
-    category: 'UPLOAD',
-    message: 'Published Short "This new AI will save you 2h/day"',
-    details: 'Video ID: xkqL8s_9s • Views projected: 15k',
-    status: 'SUCCESS'
-  },
-  {
-    id: '2',
-    timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-    category: 'VEO',
-    message: 'Veo 3 Render Complete',
-    details: 'Asset ID: veo_render_8823 • Duration: 00:58',
-    status: 'SUCCESS'
-  },
-  {
-    id: '3',
-    timestamp: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
-    category: 'SCRIPT',
-    message: 'Script generation finished for Longform #142',
-    details: 'Topic: "The Future of LLMs" • Tokens used: 4500',
-    status: 'INFO'
-  },
-  {
-    id: '4',
-    timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-    category: 'TREND',
-    message: 'Trend Scan completed',
-    details: 'Found 5 new high-relevance topics in AI sector.',
-    status: 'INFO'
-  },
-  {
-    id: '5',
-    timestamp: new Date(Date.now() - 1000 * 60 * 50).toISOString(),
-    category: 'SYSTEM',
-    message: 'Hourly Agent Cycle Started',
-    status: 'INFO'
-  }
-];
+export const MOCK_LOGS: LogEntry[] = [];
 
 export const VEO_PROMPT_TEMPLATES = {
   LONGFORM: (topic: string, goal: string, audience: string) => `

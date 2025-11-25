@@ -1,6 +1,4 @@
-
 import React, { useEffect, useState } from 'react';
-import { MOCK_TRENDS } from '../constants';
 import { TrendingUp, Plus, ArrowRight, Save, Loader2, Target, Globe, Clock, BarChart, Info } from 'lucide-react';
 import { StrategyProfile, Trend } from '../types';
 
@@ -38,7 +36,8 @@ const ContentStrategy: React.FC = () => {
     setIsSaving(true);
     setSaveMessage(null);
     try {
-        const res = await fetch('/api/strategy', {
+        // Backend expects userId in query or body. Adding to query for safety.
+        const res = await fetch('/api/strategy?userId=demo', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: 'demo', profile })
@@ -263,7 +262,9 @@ const ContentStrategy: React.FC = () => {
                         </thead>
                         <tbody className="divide-y divide-slate-700/50">
                             {trends.length === 0 ? (
-                                <tr><td colSpan={4} className="p-4 text-center text-slate-500">Scanning trends...</td></tr>
+                                <tr><td colSpan={4} className="p-4 text-center text-slate-500">
+                                    {isLoading ? "Scanning trends..." : "No active trends found."}
+                                </td></tr>
                             ) : trends.map((trend) => (
                                 <tr key={trend.id} className="hover:bg-slate-700/20 transition-colors">
                                     <td className="p-4">

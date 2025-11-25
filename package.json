@@ -1,3 +1,4 @@
+
 {
   "name": "ai-channel-growthos",
   "version": "1.0.0",
@@ -6,7 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run build:frontend && npm run build:backend",
-    "build:frontend": "vite build",
+    "build:frontend": "vite build --outDir dist/frontend",
     "build:backend": "tsc -p tsconfig.server.json",
     "start": "node dist/backend/server.js",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",

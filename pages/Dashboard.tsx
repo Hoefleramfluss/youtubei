@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Users, Eye, PlayCircle, Clock, CheckCircle2, Circle, AlertCircle, Youtube, Loader2, ShieldCheck, Zap, Power } from 'lucide-react';
+import { Users, Eye, PlayCircle, Clock, Loader2, Youtube, ShieldCheck, Zap, Power, AlertCircle } from 'lucide-react';
 import MetricCard from '../components/MetricCard';
 import { INITIAL_STATS, GROWTH_DATA } from '../constants';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
@@ -34,20 +33,24 @@ const Dashboard: React.FC = () => {
         if (authRes.ok) {
           const data = await authRes.json();
           setIsConnected(data.connected);
-        }
 
-        // 2. Automation Settings
-        const autoRes = await fetch('/api/automation?userId=demo');
-        if (autoRes.ok) {
-            const data = await autoRes.json();
-            setIsAutomationEnabled(data.enabled);
-        }
+          // Fetch other data only if connected
+          if (data.connected) {
+             // Automation
+             const autoRes = await fetch('/api/automation?userId=demo');
+             if (autoRes.ok) {
+                 const autoData = await autoRes.json();
+                 setIsAutomationEnabled(autoData.enabled);
+             }
 
-        // 3. Analytics (if connected)
-        const statsRes = await fetch('/api/analytics/summary?userId=demo');
-        if (statsRes.ok) {
-            const data = await statsRes.json();
-            setStats(data);
+             // Analytics
+             const statsRes = await fetch('/api/analytics/summary?userId=demo');
+             if (statsRes.ok) {
+                 const statsData = await statsRes.json();
+                 // If the API returns valid data, use it. Otherwise keeps initial (0s)
+                 if (statsData) setStats(statsData);
+             }
+          }
         }
       } catch (error) {
         console.error('Failed to init dashboard:', error);
@@ -79,7 +82,8 @@ const Dashboard: React.FC = () => {
       setIsTogglingAuto(true);
       const newState = !isAutomationEnabled;
       try {
-          await fetch('/api/automation', {
+          // Pass userId in body as well, although backend checks query
+          await fetch('/api/automation?userId=demo', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ userId: 'demo', enabled: newState })
@@ -96,13 +100,24 @@ const Dashboard: React.FC = () => {
       setIsTriggering(true);
       try {
           await fetch('/api/agent/runHourly?userId=demo', { method: 'POST' });
-          // In a real app, maybe redirect to monitor or show toast
           alert("Autonomous Cycle Started! Check the Live Monitor tab.");
       } catch(e) {
           console.error("Trigger failed", e);
       } finally {
           setIsTriggering(false);
       }
+  };
+
+  const handleDryRun = async () => {
+    setIsTriggering(true);
+    try {
+        await fetch('/api/agent/runFullTest?userId=demo', { method: 'POST' });
+        alert("Dry-Run Cycle Started! Check Monitor.");
+    } catch(e) {
+        console.error("Dry run failed", e);
+    } finally {
+        setIsTriggering(false);
+    }
   };
 
   return (
@@ -181,20 +196,19 @@ const Dashboard: React.FC = () => {
               </div>
 
               {/* Manual Trigger */}
-              <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5 flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                       <div className="p-3 rounded-lg bg-indigo-500/20 text-indigo-400">
-                          <Zap size={24} />
-                      </div>
-                      <div>
-                          <h3 className="text-white font-semibold">Manual Override</h3>
-                          <p className="text-xs text-slate-400">Force immediate content cycle.</p>
-                      </div>
-                  </div>
+              <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5 flex items-center justify-between gap-4">
+                  <button 
+                    onClick={handleDryRun}
+                    disabled={isTriggering}
+                    className="flex-1 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+                  >
+                      {isTriggering ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
+                      Run Full Test (Dry Run)
+                  </button>
                   <button 
                     onClick={handleManualTrigger}
                     disabled={isTriggering}
-                    className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+                    className="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors"
                   >
                       {isTriggering ? <Loader2 size={16} className="animate-spin" /> : <PlayCircle size={16} />}
                       Run Cycle Now
@@ -210,9 +224,6 @@ const Dashboard: React.FC = () => {
                 <h4 className="text-amber-200 font-bold text-sm">Action Required: Connect Account</h4>
                 <p className="text-amber-200/70 text-sm mt-1">
                     Please connect your YouTube account to enable auto-uploads, analytics syncing, and Veo 3 publishing. 
-                    <span className="block mt-1 text-xs text-amber-500/70 flex items-center gap-1">
-                      <ShieldCheck size={12}/> Grants permissions: Upload, Analytics, Audit.
-                    </span>
                 </p>
             </div>
         </div>
@@ -222,31 +233,31 @@ const Dashboard: React.FC = () => {
       <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 transition-opacity ${!isConnected ? 'opacity-50 pointer-events-none' : ''}`}>
         <MetricCard 
           title="Subscribers" 
-          value={stats.subscribers.toLocaleString()} 
+          value={stats.subscribers > 0 ? stats.subscribers.toLocaleString() : "-"} 
           target={stats.subsGoal.toString()}
-          change={12.5}
-          trend="up"
+          change={0}
+          trend="neutral"
           icon={<Users size={20} />} 
         />
         <MetricCard 
-          title="Avg. VTR (Retention)" 
-          value={`${stats.vtr}%`} 
-          change={2.1} 
-          trend="up"
+          title="Avg. VTR" 
+          value={stats.vtr > 0 ? `${stats.vtr}%` : "-"} 
+          change={0} 
+          trend="neutral"
           icon={<Clock size={20} />} 
         />
         <MetricCard 
           title="Total Views (28d)" 
-          value={stats.impressions ? (stats.impressions / 2).toLocaleString() : '0'} // Mock relation
-          change={5.4} 
-          trend="up"
+          value={stats.views > 0 ? stats.views.toLocaleString() : "-"} 
+          change={0} 
+          trend="neutral"
           icon={<Eye size={20} />} 
         />
         <MetricCard 
           title="CTR" 
-          value={`${stats.ctr}%`} 
-          change={0.8} 
-          trend="down"
+          value={stats.ctr > 0 ? `${stats.ctr}%` : "-"} 
+          change={0} 
+          trend="neutral"
           icon={<PlayCircle size={20} />} 
         />
       </div>
@@ -257,6 +268,7 @@ const Dashboard: React.FC = () => {
           <h3 className="text-lg font-semibold text-white mb-6">Growth Trajectory</h3>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
+              {/* Uses placeholder GROWTH_DATA which is now 0s. In real app, we'd fetch historical series. */}
               <AreaChart data={GROWTH_DATA}>
                 <defs>
                   <linearGradient id="colorSubs" x1="0" y1="0" x2="0" y2="1">
@@ -294,33 +306,14 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Daily Tasks */}
+        {/* Status Panel */}
         <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-white">Daily Production</h3>
-                <span className="text-xs font-mono text-indigo-400 bg-indigo-900/50 px-2 py-1 rounded">24/7 CYCLE</span>
-            </div>
-
-            <div className="space-y-4">
-                <div className="space-y-2">
-                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Long Form</p>
-                    <div className="p-3 bg-slate-700/30 rounded-lg border border-slate-700/50 flex items-center gap-3">
-                        <Circle size={18} className="text-slate-500" />
-                        <span className="text-sm text-slate-300">Veo 3 vs Sora Analysis</span>
-                    </div>
-                </div>
-
-                <div className="space-y-2">
-                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Shorts</p>
-                    <div className="p-3 bg-slate-700/30 rounded-lg border border-slate-700/50 flex items-center gap-3">
-                        <Circle size={18} className="text-slate-500" />
-                        <span className="text-sm text-slate-300">AI News Flash: OpenAI</span>
-                    </div>
-                    <div className="p-3 bg-slate-700/30 rounded-lg border border-slate-700/50 flex items-center gap-3">
-                        <Circle size={18} className="text-slate-500" />
-                        <span className="text-sm text-slate-300">ChatGPT Prompt Secret</span>
-                    </div>
-                </div>
+            <h3 className="text-lg font-semibold text-white mb-4">System Status</h3>
+            <div className="space-y-4 text-sm text-slate-400">
+               <p>Backend: <span className="text-emerald-400">Operational</span></p>
+               <p>Scheduler: <span className={isAutomationEnabled ? "text-emerald-400" : "text-amber-400"}>
+                 {isAutomationEnabled ? 'Active' : 'Paused'}
+               </span></p>
             </div>
         </div>
       </div>

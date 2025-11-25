@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { Terminal, Activity, Search, Wifi, WifiOff, Clock } from 'lucide-react';
 import { LogEntry } from '../types';
@@ -26,6 +25,7 @@ const MonitorPage: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
+        // Backend returns array. If empty, it's just empty array.
         setLogs(data);
         setIsConnected(true);
         setLastUpdated(new Date());
@@ -34,13 +34,13 @@ const MonitorPage: React.FC = () => {
       }
     } catch (error) {
       setIsConnected(false);
-      // Keep existing logs if connection drops temporarily
+      // Keep existing logs on temporary fail
     }
   };
 
   useEffect(() => {
     fetchLogs();
-    const interval = setInterval(fetchLogs, 3000); // Faster polling for "Live" feel
+    const interval = setInterval(fetchLogs, 3000);
     return () => clearInterval(interval);
   }, [isLive]);
 
@@ -148,6 +148,7 @@ const MonitorPage: React.FC = () => {
                 <div className="flex flex-col items-center justify-center h-full text-slate-700 gap-2">
                     <Terminal size={48} strokeWidth={1} />
                     <p className="font-sans text-sm">Waiting for system events...</p>
+                    <p className="font-sans text-xs text-slate-600">Events appear here during Dry-Runs or Autonomous Cycles.</p>
                 </div>
             )}
             
